@@ -42,11 +42,14 @@ class Agent:
     def check_call(self):
         if self.game.call_amount - self.down_for > self.balance:
             # side pot case
+            # implement the side pot logic in other places as well
             pass
         else:
             self.bet(self.game.call_amount - self.down_for)
 
     def take_action(self):
+        if self.balance == 0:
+            return
         action = input("Action: ")
         while action.lower() != "call" and action.lower() != "fold":
             action = input("Action: ")
@@ -77,6 +80,7 @@ class PokerGame:
     
     def __get_player_with_winning_hand(self):
         hands = {agent : hand for (agent, hand) in zip(self.agents, [best_hand(a.hand) for a in self.agents])}
+        # also account for 2 players in a tie
         return max(hands, key=lambda player: hand_rank(best_hand(hands[player])))
     
     def play_game(self):
@@ -101,3 +105,4 @@ class PokerGame:
                 self.community_cards += self.deck.deal(1)
         winner = self.__get_player_with_winning_hand()
         winner.balance += self.pot
+        # account for draw case
