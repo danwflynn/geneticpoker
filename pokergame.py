@@ -43,7 +43,20 @@ class Agent:
         if self.game.call_amount - self.down_for > self.balance:
             # side pot case
             # implement the side pot logic in other places as well
-            pass
+            amount_to_call = self.balance
+            self.game.pot += amount_to_call
+            self.down_for += amount_to_call
+            self.balance = 0
+
+            # Create side pot
+            side_pot_amount = self.game.call_amount - self.down_for
+            if side_pot_amount > 0:
+                if side_pot_amount not in self.game.sidepots:
+                    self.game.sidepots[side_pot_amount] = 0
+                self.game.sidepots[side_pot_amount] += side_pot_amount
+                self.down_for += side_pot_amount
+            self.game.agents.rotate(-1)
+
         else:
             self.bet(self.game.call_amount - self.down_for)
 
@@ -103,6 +116,18 @@ class PokerGame:
             if i < 2:
                 self.last_raise = 0
                 self.community_cards += self.deck.deal(1)
-        winner = self.__get_player_with_winning_hand()
-        winner.balance += self.pot
+        participants = list(self.agents)
+        main_pot_winner = self.__get_player_with_winning_hand(participants)
+        main_pot_winner.balance += self.pot
+        
+        for side_pot_amount in sorted(self.sidepots.keys(), reverse=True):
+            participants = [agent for agent in participants if agent.down_for >= side_pot_amount]
+            if participants:
+                side_pot_winner = self.__get_player_with_winning_hand(participants)
+                side_pot_winner.balance += self.sidepots[side_pot_amount]
+
+        # Reset game state
+        self.pot = 0
+        self.sidepots = {}
+        self.community_cards = []
         # account for draw case
