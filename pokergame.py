@@ -48,7 +48,6 @@ class Agent:
             self.down_for += amount_to_call
             self.balance = 0
 
-            # Create side pot
             side_pot_amount = self.game.call_amount - self.down_for
             if side_pot_amount > 0:
                 if side_pot_amount not in self.game.sidepots:
@@ -126,7 +125,6 @@ class PokerGame:
                 side_pot_winner = self.__get_player_with_winning_hand(participants)
                 side_pot_winner.balance += self.sidepots[side_pot_amount]
 
-        # Reset game state
         self.pot = 0
         self.sidepots = {}
         self.community_cards = []
