@@ -28,7 +28,10 @@ class Agent:
         if amount != self.game.call_amount - self.down_for and amount < 2 * self.game.last_raise:
             raise Exception("Must either call or raise by double previous raise")
         self.balance -= amount
-        self.game.pot += amount
+        if len(self.game.sidepots.values()) == 0:
+            self.game.pot += amount
+        else:
+            self.game.sidepots[self.game.current_sidepot] += amount
         self.down_for += amount
         prev_call_amount = self.game.call_amount
         self.game.call_amount = self.down_for
@@ -41,23 +44,28 @@ class Agent:
     
     def check_call(self):
         if self.game.call_amount - self.down_for > self.balance:
-            # side pot case
-            # implement the side pot logic in other places as well
-            pass
+            self.game.pot += self.balance
+            self.down_for += self.balance
+            self.balance = 0
+            sp = []
+            for a in self.game.agents:
+                if a.balance > 0:
+                    sp.append(a)
+            self.game.current_sidepot = sp
+            self.game.sidepots[sp] = 0
+            if self.game.last_up is self:
+                self.game.round_in_play = False
         else:
             self.bet(self.game.call_amount - self.down_for)
 
     def take_action(self):
         if self.balance == 0:
-            return
-        action = input("Action: ")
-        while action.lower() != "call" and action.lower() != "fold":
-            action = input("Action: ")
-        if action.lower() == "call":
-            self.check_call()
+            self.game.agents.rotate(-1)
+            if self.game.last_up is self:
+                self.game.round_in_play = False
         else:
-            self.fold()
-        # I just put call and fold as user actions for now
+            # agent policy
+            pass
 
 
 class PokerGame:
@@ -71,6 +79,7 @@ class PokerGame:
         self.deck = Deck()
         self.community_cards = []
         self.pot = 0
+        self.current_sidepot = None
         self.sidepots = {}
         self.call_amount = 0
         self.last_raise = 0
@@ -78,10 +87,10 @@ class PokerGame:
         self.first_up = agents[0]
         self.last_up = agents[-1]
     
-    def __get_player_with_winning_hand(self):
-        hands = {agent : hand for (agent, hand) in zip(self.agents, [best_hand(a.hand) for a in self.agents])}
-        # also account for 2 players in a tie
-        return max(hands, key=lambda player: hand_rank(best_hand(hands[player])))
+    def __get_players_with_winning_hand(self):
+        agent_ranks = {agent : hand for (agent, hand) in zip(self.agents, [hand_rank(best_hand(a.hand)) for a in self.agents])}
+        max_rank = max(agent_ranks.values())
+        return [a for a in agent_ranks.keys() if agent_ranks[a] == max_rank]
     
     def play_game(self):
         self.agents[0].bet(50)
@@ -103,6 +112,12 @@ class PokerGame:
             if i < 2:
                 self.last_raise = 0
                 self.community_cards += self.deck.deal(1)
-        winner = self.__get_player_with_winning_hand()
-        winner.balance += self.pot
-        # account for draw case
+        winners = self.__get_players_with_winning_hand()
+        winnings = {}
+        for a in winners:
+            winnings[a] = self.pot // len(winners)
+            for sidepot in self.sidepots.keys():
+                if a in sidepot:
+                    winnings[a] += self.sidepots[sidepot] // len([x for x in sidepot if x in winners])
+        for winner in winners:
+            winner.balance += winnings[winner]
