@@ -1,6 +1,6 @@
 import random
 from pokergame import PokerGame, Agent
-from deck import Deck, Card, Suit, hand_description, best_hand
+from deck import Deck, Card, Suit, hand_description, best_hand, hand_rank
 
 
 def play_poker_game():
@@ -32,7 +32,8 @@ def play_poker_game():
         for agent in list(game.agents):  # Copy the list to allow safe modification
             if len(game.agents) == 1:
                 # If only one player remains, they win the pot
-                print(f"Only one player remains: {game.agents[0].stats['name']} wins the pot!")
+                print(f"\nOnly one player remains: {game.agents[0].stats['name']} wins the pot!")
+                show_cards(hide_ai=False)
                 return True
             if agent.stats["name"] == "Human" and human_player:
                 # Ask human player for their action
@@ -51,6 +52,7 @@ def play_poker_game():
                     print("Invalid action. Please enter 'bet' or 'fold'.")
             else:
                 # AI players take random actions
+                # UPDATE TO SELF LEARNED POLICY
                 if random.choice(["bet", "fold"]) == "bet":
                     try:
                         # Random bet amount as a percentage of current balance
@@ -65,44 +67,47 @@ def play_poker_game():
                     agent.fold()
         return False
 
-    def show_cards():
+    def show_cards(hide_ai=True):
         print("\nCommunity Cards: " + ", ".join(map(str, game.community_cards)))
         for agent in game.agents:
-            print(f"{agent.stats['name']} cards: {agent.cards}")
+            if hide_ai and human_player and agent.stats["name"] != "Human":
+                print(f"{agent.stats['name']} cards: [Hidden]")
+            else:
+                print(f"{agent.stats['name']} cards: {agent.cards}")
 
     # Game phases
     phases = ['Pre-flop', 'Flop', 'Turn', 'River', 'Showdown']
 
     # Deal initial cards (Pre-flop)
     print("\nStarting Pre-flop:")
-    show_cards()
+    show_cards(hide_ai=True)
     if perform_betting_round():
         return
 
     # Deal flop
     game.deal_community_cards(3)
     print("\nFlop:")
-    show_cards()
+    show_cards(hide_ai=True)
     if perform_betting_round():
         return
 
     # Deal turn
     game.deal_community_cards(1)
     print("\nTurn:")
-    show_cards()
+    show_cards(hide_ai=True)
     if perform_betting_round():
         return
 
     # Deal river
     game.deal_community_cards(1)
     print("\nRiver:")
-    show_cards()
+    show_cards(hide_ai=True)
     if perform_betting_round():
         return
 
     # Showdown
     print("\nShowdown:")
-    show_cards()
+    show_cards(hide_ai=False)  # Reveal all hands
     winners = game.determine_winner()
     if winners:
         for winner in winners:
