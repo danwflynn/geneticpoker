@@ -15,11 +15,13 @@ class Agent:
         self.cards = []
         self.down_for = 0
         if self.game.last_up is self:
-            if self.game.agents[1].down_for == self.game.call_amount:
+            remaining_agents = [agent for agent in self.game.agents if agent != self]
+            if len(remaining_agents) == 1:
                 self.game.round_in_play = False
-            self.game.last_up = self.game.agents[-1]
+            self.game.last_up = remaining_agents[-1] if remaining_agents else None
         if self.game.first_up is self:
-            self.game.first_up = self.game.agents[1]
+            remaining_agents = [agent for agent in self.game.agents if agent != self]
+            self.game.first_up = remaining_agents[0] if remaining_agents else None
         self.game.agents.remove(self)
 
     def bet(self, amount: int):
@@ -28,96 +30,58 @@ class Agent:
         if amount != self.game.call_amount - self.down_for and amount < 2 * self.game.last_raise:
             raise Exception("Must either call or raise by double previous raise")
         self.balance -= amount
-        if len(self.game.sidepots.values()) == 0:
-            self.game.pot += amount
-        else:
-            self.game.sidepots[self.game.current_sidepot] += amount
-        self.down_for += amount
-        prev_call_amount = self.game.call_amount
-        self.game.call_amount = self.down_for
-        if self.game.call_amount > prev_call_amount:
+        if self.game.call_amount > self.down_for:
             self.game.last_raise = amount
-            self.game.last_up = self.game.agents[-1]
-        if self.game.last_up is self and self.game.call_amount == prev_call_amount:
+        self.down_for += amount
+        self.game.pot += amount
+        self.game.last_up = self
+        if self.down_for == self.game.call_amount:
             self.game.round_in_play = False
-        self.game.agents.rotate(-1)
-    
-    def check_call(self):
-        if self.game.call_amount - self.down_for > self.balance:
-            self.game.pot += self.balance
-            self.down_for += self.balance
-            self.balance = 0
-            sp = []
-            for a in self.game.agents:
-                if a.balance > 0:
-                    sp.append(a)
-            self.game.current_sidepot = sp
-            self.game.sidepots[sp] = 0
-            if self.game.last_up is self:
-                self.game.round_in_play = False
-        else:
-            self.bet(self.game.call_amount - self.down_for)
 
-    def take_action(self):
-        if self.balance == 0:
-            self.game.agents.rotate(-1)
-            if self.game.last_up is self:
-                self.game.round_in_play = False
-        else:
-            # agent policy
-            pass
+    def call(self):
+        self.bet(self.game.call_amount - self.down_for)
+
+    def all_in(self):
+        self.bet(self.balance)
 
 
 class PokerGame:
     def __init__(self, agents: List[Agent]):
-        if len(agents) > 22 or len(agents) < 2:
-            raise Exception("Max of 22 players min of 2 players per game")
-        for agent in agents:
-            if agent.balance < 100:
-                raise Exception("Players must have at least 100")
-        self.agents = deque(agents)
         self.deck = Deck()
-        self.community_cards = []
+        self.agents = deque(agents)  # Using deque for efficient rotation of players
         self.pot = 0
-        self.current_sidepot = None
-        self.sidepots = {}
         self.call_amount = 0
         self.last_raise = 0
-        self.round_in_play = False
-        self.first_up = agents[0]
-        self.last_up = agents[-1]
-    
-    def __get_players_with_winning_hand(self):
-        agent_ranks = {agent : hand for (agent, hand) in zip(self.agents, [hand_rank(best_hand(a.hand)) for a in self.agents])}
-        max_rank = max(agent_ranks.values())
-        return [a for a in agent_ranks.keys() if agent_ranks[a] == max_rank]
-    
-    def play_game(self):
-        self.agents[0].bet(50)
-        self.agents[0].bet(100)
+        self.round_in_play = True
+        self.last_up = None
+        self.first_up = None
+        self.community_cards = []  # Initialize the community cards list
+        for agent in agents:
+            agent.game = self
+
+    def start_game(self):
+        self.deck = Deck()  # Shuffle a new deck
+        self.pot = 0
+        self.call_amount = 0
+        self.last_raise = 0
+        self.round_in_play = True
+        self.community_cards = []  # Clear community cards at the start of each game
+
+        # Deal two cards to each player
         for agent in self.agents:
             agent.cards = self.deck.deal(2)
-        self.round_in_play = True
-        while self.round_in_play():
-            self.agents[0].take_action()
-        self.last_raise = 0
-        self.community_cards += self.deck.deal(3)
-        for i in range(3):
-            while self.agents[0] is not self.first_up:
-                self.agents.rotate(-1)
-            self.last_up = self.agents[-1]
-            self.round_in_play = True
-            while self.round_in_play():
-                self.agents[0].take_action()
-            if i < 2:
-                self.last_raise = 0
-                self.community_cards += self.deck.deal(1)
-        winners = self.__get_players_with_winning_hand()
-        winnings = {}
-        for a in winners:
-            winnings[a] = self.pot // len(winners)
-            for sidepot in self.sidepots.keys():
-                if a in sidepot:
-                    winnings[a] += self.sidepots[sidepot] // len([x for x in sidepot if x in winners])
-        for winner in winners:
-            winner.balance += winnings[winner]
+            agent.down_for = 0
+
+        self.first_up = self.agents[0]
+        self.last_up = self.agents[-1]
+        print("Game started. Players have been dealt their cards.")
+
+    def deal_community_cards(self, num):
+        self.community_cards.extend(self.deck.deal(num))
+
+    def determine_winner(self):
+        best_hands = [(agent, best_hand(agent.cards + self.community_cards)) for agent in self.agents]
+        best_hands.sort(key=lambda x: hand_rank(x[1]), reverse=True)
+        winning_hand = hand_rank(best_hands[0][1])
+        winners = [agent for agent, hand in best_hands if hand_rank(hand) == winning_hand]
+        return winners
