@@ -68,40 +68,40 @@ def get_hand_index(card1: Card, card2: Card) -> int:
         return STARTING_HANDS.index(hand_str)
 
 # Starting hands but in ranked order
+RANKED_STARTING_HANDS = ["AA", "KK", "QQ", "AKs", "JJ", "AQs", "KQs", "AJs", "KJs", "TT", "AKo", "ATs", "QJs", "KTs", "QTs",
+                         "JTs", "99", "AQo", "A9s", "KQo", "88", "K9s", "T9s", "A8s", "Q9s", "J9s", "AJo", "A5s", "77", "A7s",
+                         "KJo", "A4s", "A3s", "A6s", "QJo", "66", "K8s", "T8s", "A2s", "98s", "J8s", "ATo", "Q8s", "K7s", "KTo",
+                         "55", "JTo", "87s", "QTo", "44", "33", "22", "K6s", "97s", "K5s", "76s", "T7s", "K4s", "K3s", "K2s",
+                         "Q7s", "86s", "65s", "J7s", "54s", "Q6s", "75s", "96s", "Q5s", "64s", "Q4s", "Q3s", "T9o", "T6s", "Q2s",
+                         "A9o", "53s", "85s", "J6s", "J9o", "K9o", "J5s", "Q9o", "43s", "74s", "J4s", "J3s", "95s", "J2s", "63s",
+                         "A8o", "52s", "T5s", "84s", "T4s", "T3s", "42s", "T2s", "98o", "T8o", "A5o", "A7o", "73s", "A4o", "32s",
+                         "94s", "93s", "J8o", "A3o", "62s", "92s", "K8o", "A6o", "87o", "Q8o", "83s", "A2o", "82s", "97o", "72s",
+                         "76o", "K7o", "65o", "T7o", "K6o", "86o", "54o", "K5o", "J7o", "75o", "Q7o", "K4o", "K3o", "K2o", "96o",
+                         "64o", "Q6o", "53o", "85o", "T6o", "Q5o", "43o", "Q4o", "Q3o", "Q2o", "74o", "J6o", "63o", "J5o", "95o",
+                         "52o", "J4o", "J3o", "42o", "J2o", "84o", "T5o", "T4o", "32o", "T3o", "73o", "T2o", "62o", "94o", "93o",
+                         "92o", "83o", "82o", "72o"]
 
-RANKED_STARTING_HANDS = []
+assert sorted(STARTING_HANDS) == sorted(RANKED_STARTING_HANDS)
 
-# Pocket Aces
-preflop_PM[12, :, 1] = 0.1
-preflop_PM[12, :, 12] = 0.1
-preflop_PM[12, :, 2:12] = 0.08
+# Action space for super strong hand
+early_strong_hand_actions = np.array([0, 0.1, 0.025, 0.025, 0.05, 0.05, 0.15, 0.3, 0.15, 0.05, 0.05, 0.025, 0.025])
 
-# Pocket Kings, Queens, Jacks, 10s, Suited Royals (minus queen-jack)
-preflop_PM[8:12, 0:8, 1] = 0.2
-preflop_PM[8:12, 0:8, 2:8] = 0.1
-preflop_PM[8:12, 0:8, 8:13] = 0.04
-preflop_PM[8:12, 8:10, 1] = 1
+def consolidate_to_action(action_space: np.ndarray, action: int, alpha=1):
+    new_action_space = action_space.copy()
+    new_action_space[action] = alpha
+    # figure out the math to fix everything else
+    pass
 
-preflop_PM[13:16, 0:8, 1] = 0.2
-preflop_PM[13:16, 0:8, 2:8] = 0.1
-preflop_PM[13:16, 0:8, 8:13] = 0.04
-preflop_PM[13:16, 8:10, 1] = 1
+# By default, set all hands to fold
+preflop_PM[:, :, 0] = 1
 
-preflop_PM[25:27, 0:8, 1] = 0.2
-preflop_PM[25:27, 0:8, 2:8] = 0.1
-preflop_PM[25:27, 0:8, 8:13] = 0.04
-preflop_PM[25:27, 8:10, 1] = 1
+for starting_rank in range(169):
+    hand_str = RANKED_STARTING_HANDS[starting_rank]
+    hand_ind = STARTING_HANDS.index(hand_str)
 
-# Ace-King offsuit, Ace-10 suited, Queen-Jack suited, Royals-Ten suited, Pocket 9s
+    if starting_rank == RANKED_STARTING_HANDS.index("AA"):
+        preflop_PM[hand_ind, :] = early_strong_hand_actions
+    #elif starting_rank <= RANKED_STARTING_HANDS.index("TT"):
+        #preflop_PM[]
 
-
-preflop_PM[36, 0:8, 1] = 0.2
-preflop_PM[36, 0:8, 2:8] = 0.1
-preflop_PM[36, 0:8, 8:13] = 0.04
-preflop_PM[36, 8:10, 1] = 1
-
-# Ace-Queen offsuit, Ace-9 suited, King-Queen, Pocket 8s
-
-# 10->Ace-9 suited
-
-# Ace-Jack offsuit, 
+assert np.sum(preflop_PM) == 1690
