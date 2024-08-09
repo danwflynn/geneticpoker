@@ -121,3 +121,6 @@ class PokerGame:
                     winnings[a] += self.sidepots[sidepot] // len([x for x in sidepot if x in winners])
         for winner in winners:
             winner.balance += winnings[winner]
+        for a in self.agents:
+            a.cards = []
+            a.down_for = 0

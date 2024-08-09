@@ -67,12 +67,16 @@ def get_hand_index(card1: Card, card2: Card) -> int:
         hand_str = f"{card1.rank}{card2.rank}{'s' if is_suited else 'o'}"
         return STARTING_HANDS.index(hand_str)
 
+# Starting hands but in ranked order
+
+RANKED_STARTING_HANDS = []
+
 # Pocket Aces
 preflop_PM[12, :, 1] = 0.1
 preflop_PM[12, :, 12] = 0.1
 preflop_PM[12, :, 2:12] = 0.08
 
-# Pocket Kings, Queens, Jacks, 10s, Suited Royals
+# Pocket Kings, Queens, Jacks, 10s, Suited Royals (minus queen-jack)
 preflop_PM[8:12, 0:8, 1] = 0.2
 preflop_PM[8:12, 0:8, 2:8] = 0.1
 preflop_PM[8:12, 0:8, 8:13] = 0.04
@@ -88,7 +92,16 @@ preflop_PM[25:27, 0:8, 2:8] = 0.1
 preflop_PM[25:27, 0:8, 8:13] = 0.04
 preflop_PM[25:27, 8:10, 1] = 1
 
+# Ace-King offsuit, Ace-10 suited, Queen-Jack suited, Royals-Ten suited, Pocket 9s
+
+
 preflop_PM[36, 0:8, 1] = 0.2
 preflop_PM[36, 0:8, 2:8] = 0.1
 preflop_PM[36, 0:8, 8:13] = 0.04
 preflop_PM[36, 8:10, 1] = 1
+
+# Ace-Queen offsuit, Ace-9 suited, King-Queen, Pocket 8s
+
+# 10->Ace-9 suited
+
+# Ace-Jack offsuit, 
