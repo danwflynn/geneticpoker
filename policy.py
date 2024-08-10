@@ -83,6 +83,14 @@ RANKED_STARTING_HANDS = ["AA", "KK", "QQ", "AKs", "JJ", "AQs", "KQs", "AJs", "KJ
 
 assert sorted(STARTING_HANDS) == sorted(RANKED_STARTING_HANDS)
 
+# Always fold action space
+always_fold = np.zeros(13)
+always_fold[0] = 1
+
+# Always call action space
+always_call = np.zeros(13)
+always_call[1] = 1
+
 # Action space for super strong hand
 early_strong_hand_actions = np.array([0, 0.1, 0.025, 0.025, 0.05, 0.05, 0.15, 0.3, 0.15, 0.05, 0.05, 0.025, 0.025])
 
@@ -99,17 +107,19 @@ def consolidate_to_action(action_space: np.ndarray, action: int, alpha=1):
     return new_action_space
 
 # By default, set all hands to fold
-preflop_PM[:, :, 0] = 1
+preflop_PM[:, :] = always_fold
 
 for starting_rank in range(169):
     hand_str = RANKED_STARTING_HANDS[starting_rank]
     hand_ind = STARTING_HANDS.index(hand_str)
 
     if starting_rank == RANKED_STARTING_HANDS.index("AA"):
-        preflop_PM[hand_ind, :] = early_strong_hand_actions
-    #elif starting_rank <= RANKED_STARTING_HANDS.index("TT"):
-        #preflop_PM[]
+        preflop_PM[hand_ind, :] = early_strong_hand_actions.copy()
+    elif starting_rank <= RANKED_STARTING_HANDS.index("TT"):
+        preflop_PM[hand_ind, :5] = consolidate_to_action(early_strong_hand_actions, 1, 0.2)
+        preflop_PM[hand_ind, 5:10] = consolidate_to_action(early_strong_hand_actions, 1, 0.9)
+    elif starting_rank <= RANKED_STARTING_HANDS.index("99"):
+        preflop_PM[hand_ind, :5] = consolidate_to_action(consolidate_to_action(early_strong_hand_actions, 2, 0.5), 1, 0.5)
+        preflop_PM[5:10] = always_call
 
 assert np.sum(preflop_PM) == 1690
-
-print(consolidate_to_action(early_strong_hand_actions, 0, 0.9))
