@@ -90,9 +90,9 @@ def consolidate_to_action(action_space: np.ndarray, action: int, alpha=1):
     new_action_space = action_space.copy()
     new_action_space[action] = alpha
     sum_all_else = np.sum(action_space) - action_space[action]
-    for i in range(len(new_action_space)):
-        if i != action:
-            new_action_space[i] -= (sum_all_else - 1 + alpha) * (action_space[i] / sum_all_else)
+    mask = np.ones(new_action_space.shape, dtype=bool)
+    mask[action] = False
+    new_action_space[mask] -= (sum_all_else - 1 + alpha) * (action_space[mask] / sum_all_else)
     if np.sum(new_action_space) != 1:
         new_action_space[action] += 1 - np.sum(new_action_space)
     assert np.sum(new_action_space) == 1
@@ -112,4 +112,4 @@ for starting_rank in range(169):
 
 assert np.sum(preflop_PM) == 1690
 
-print(consolidate_to_action(early_strong_hand_actions, 12, 0.9))
+print(consolidate_to_action(early_strong_hand_actions, 0, 0.9))
