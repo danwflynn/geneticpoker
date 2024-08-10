@@ -97,7 +97,7 @@ fold_call[0] = 0.5
 fold_call[1] = 0.5
 
 # Action space for super strong hand
-early_strong_hand_actions = np.array([0, 0.1, 0.025, 0.025, 0.05, 0.05, 0.15, 0.3, 0.15, 0.05, 0.05, 0.025, 0.025])
+strong_hand_actions = np.array([0, 0.1, 0.025, 0.025, 0.05, 0.05, 0.15, 0.3, 0.15, 0.05, 0.05, 0.025, 0.025])
 
 def consolidate_to_action(action_space: np.ndarray, action: int, alpha=1):
     new_action_space = action_space.copy()
@@ -119,25 +119,48 @@ for starting_rank in range(169):
     hand_ind = STARTING_HANDS.index(hand_str)
 
     if starting_rank == RANKED_STARTING_HANDS.index("AA"):
-        preflop_PM[hand_ind, :] = early_strong_hand_actions.copy()
+        preflop_PM[hand_ind, :] = strong_hand_actions.copy()
     elif starting_rank <= RANKED_STARTING_HANDS.index("TT"):
-        preflop_PM[hand_ind, :5] = consolidate_to_action(early_strong_hand_actions, 1, 0.2)
-        preflop_PM[hand_ind, 5:10] = consolidate_to_action(early_strong_hand_actions, 1, 0.9)
+        preflop_PM[hand_ind, :5] = consolidate_to_action(strong_hand_actions, 1, 0.2)
+        preflop_PM[hand_ind, 5:10] = consolidate_to_action(strong_hand_actions, 1, 0.9)
     elif starting_rank <= RANKED_STARTING_HANDS.index("99"):
-        preflop_PM[hand_ind, :5] = consolidate_to_action(consolidate_to_action(early_strong_hand_actions, 2, 0.5), 1, 0.5)
-        preflop_PM[5:10] = always_call
+        preflop_PM[hand_ind, :5] = consolidate_to_action(consolidate_to_action(strong_hand_actions, 2, 0.5), 1, 0.5)
+        preflop_PM[5:10] = always_call.copy()
     elif starting_rank <= RANKED_STARTING_HANDS.index("66"):
         preflop_PM[hand_ind, :3] = consolidate_to_action(always_call, 2, 0.3)
-        preflop_PM[hand_ind, 3:5] = always_call
+        preflop_PM[hand_ind, 3:5] = always_call.copy()
         preflop_PM[hand_ind, 5:10] = consolidate_to_action(always_call, 0, 0.3)
     elif starting_rank <= RANKED_STARTING_HANDS.index("22"):
-        preflop_PM[hand_ind, :5] = always_call
+        preflop_PM[hand_ind, :5] = always_call.copy()
         preflop_PM[hand_ind, 5:10] = consolidate_to_action(always_call, 0, 0.3)
     elif starting_rank <= RANKED_STARTING_HANDS.index("Q8o"):
-        preflop_PM[hand_ind, :3] = always_call
-        preflop_PM[hand_ind, 3:7] = fold_call
+        preflop_PM[hand_ind, :3] = always_call.copy()
+        preflop_PM[hand_ind, 3:7] = fold_call.copy()
         preflop_PM[hand_ind, 7:10] = consolidate_to_action(fold_call, 0, 0.8)
     else:
         preflop_PM[hand_ind, :3] = consolidate_to_action(fold_call, 0, 0.8)
 
 assert np.sum(preflop_PM) == 1690
+
+'''
+Post flop, the probability matrix works the same but instead of starting hands we use hand ranks.
+'''
+
+flop_PM = np.zeros(9, 10, 13)
+flop_PM[2:9, :] = strong_hand_actions.copy()
+flop_PM[1, :] = always_call.copy()
+flop_PM[0, :5] = fold_call.copy()
+flop_PM[0, 5:10] = always_fold.copy()
+
+turn_PM = np.zeros(9, 10, 13)
+turn_PM[2:9, :] = strong_hand_actions.copy()
+turn_PM[1, :5] = always_call.copy()
+turn_PM[1, 5:10] = consolidate_to_action(fold_call, 0, 0.8)
+turn_PM[0, :5] = consolidate_to_action(fold_call, 0, 0.8)
+turn_PM[0, 5:10] = always_fold.copy()
+
+river_PM = np.zeros(9, 10, 13)
+river_PM[2:9, :] = strong_hand_actions.copy()
+river_PM[1, :5] = always_call.copy()
+river_PM[1, 5:10] = consolidate_to_action(fold_call, 0, 0.8)
+river_PM[0, :] = always_fold.copy()

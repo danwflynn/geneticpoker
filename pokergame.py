@@ -65,6 +65,7 @@ class Agent:
                 self.game.round_in_play = False
         else:
             # agent policy
+            # If you fold and the call amount is 0, change the action to check
             pass
 
 
