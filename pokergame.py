@@ -1,10 +1,12 @@
 from typing import List
 from deck import *
 from collections import deque
+import numpy as np
+from policy import *
 
 
 class Agent:
-    def __init__(self, stats):
+    def __init__(self, stats: List[np.ndarray]):
         self.stats = stats
         self.balance = 10000
         self.down_for = 0
@@ -64,9 +66,47 @@ class Agent:
             if self.game.last_up is self:
                 self.game.round_in_play = False
         else:
-            # agent policy
-            # If you fold and the call amount is 0, change the action to check
-            pass
+            hand_ind = get_hand_index(self.cards[0], self.cards[1]) if len(self.game.community_cards) == 0 else \
+            hand_rank(best_hand(self.cards + self.game.community_cards))[0]
+            wealth_ind = 0
+            if (self.game.call_amount - self.down_for) / self.balance > 0.9:
+                wealth_ind = 9
+            elif (self.game.call_amount - self.down_for) / self.balance > 0.8:
+                wealth_ind = 8
+            elif (self.game.call_amount - self.down_for) / self.balance > 0.7:
+                wealth_ind = 7
+            elif (self.game.call_amount - self.down_for) / self.balance > 0.6:
+                wealth_ind = 6
+            elif (self.game.call_amount - self.down_for) / self.balance > 0.5:
+                wealth_ind = 5
+            elif (self.game.call_amount - self.down_for) / self.balance > 0.4:
+                wealth_ind = 4
+            elif (self.game.call_amount - self.down_for) / self.balance > 0.3:
+                wealth_ind = 3
+            elif (self.game.call_amount - self.down_for) / self.balance > 0.2:
+                wealth_ind = 2
+            elif (self.game.call_amount - self.down_for) / self.balance > 0.1:
+                wealth_ind = 1
+            action_space = None
+            if len(self.game.community_cards) == 0:
+                action_space = self.stats[0][hand_ind][wealth_ind]
+            elif len(self.game.community_cards) == 3:
+                action_space = self.stats[1][hand_ind][wealth_ind]
+            elif len(self.game.community_cards) == 4:
+                action_space = self.stats[2][hand_ind][wealth_ind]
+            else:
+                action_space = self.stats[3][hand_ind][wealth_ind]
+            action = np.random.choice(np.arange(13), p=action_space)
+            if self.game.call_amount - self.down_for == 0 and action == 0:
+                action = 1
+            if action == 0:
+                self.fold()
+            elif action == 1:
+                self.check_call()
+            else:
+                # Raise case
+                pass
+
 
 
 class PokerGame:
@@ -89,7 +129,8 @@ class PokerGame:
         self.last_up = agents[-1]
     
     def __get_players_with_winning_hand(self):
-        agent_ranks = {agent : hand for (agent, hand) in zip(self.agents, [hand_rank(best_hand(a.hand)) for a in self.agents])}
+        agent_ranks = {agent : hand for (agent, hand) in 
+                       zip(self.agents, [hand_rank(best_hand(a.cards + self.community_cards)) for a in self.agents])}
         max_rank = max(agent_ranks.values())
         return [a for a in agent_ranks.keys() if agent_ranks[a] == max_rank]
     

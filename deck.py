@@ -75,7 +75,7 @@ def hand_rank(hand: List[Card]):
         return 0, ranks  # High card
 
 
-def best_hand(cards):
+def best_hand(cards: List[Card]):
     """Determine the best 5-card hand from a list of 7 cards."""
     return max((comb for comb in combinations(cards, 5)), key=lambda hand: hand_rank(hand))
 
