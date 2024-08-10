@@ -11,7 +11,7 @@ we will have 10 increments of 10%
 Since raising is continuous in the action space, it will be split up into 11 increments
 
 State space: starting hand and percentage of wealth forced to call
-Action space: fold, check/call, raise by 100% of pot, raise by 100% of pot + 10% of remaining wealth, etc.
+Action space: fold, check/call, raise by 100% of last raise, raise by 100% of last raise + 10% of remaining wealth, etc.
 
 - If you can't afford to raise, those probabilites get folded into check/call
 - If you can't afford to raise by a certain percentage of remaining wealth,

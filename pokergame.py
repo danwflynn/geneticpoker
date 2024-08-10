@@ -101,12 +101,10 @@ class Agent:
                 action = 1
             if action == 0:
                 self.fold()
-            elif action == 1:
+            elif action == 1 or self.balance < 2 * self.game.last_raise:
                 self.check_call()
             else:
-                # Raise case
-                pass
-
+                self.bet((2 * self.game.last_raise) + (((action - 2) / 10) * (self.balance - (2 * self.game.last_raise))))
 
 
 class PokerGame:
