@@ -89,8 +89,14 @@ early_strong_hand_actions = np.array([0, 0.1, 0.025, 0.025, 0.05, 0.05, 0.15, 0.
 def consolidate_to_action(action_space: np.ndarray, action: int, alpha=1):
     new_action_space = action_space.copy()
     new_action_space[action] = alpha
-    # figure out the math to fix everything else
-    pass
+    sum_all_else = np.sum(action_space) - action_space[action]
+    for i in range(len(new_action_space)):
+        if i != action:
+            new_action_space[i] -= (sum_all_else - 1 + alpha) * (action_space[i] / sum_all_else)
+    if np.sum(new_action_space) != 1:
+        new_action_space[action] += 1 - np.sum(new_action_space)
+    assert np.sum(new_action_space) == 1
+    return new_action_space
 
 # By default, set all hands to fold
 preflop_PM[:, :, 0] = 1
@@ -105,3 +111,5 @@ for starting_rank in range(169):
         #preflop_PM[]
 
 assert np.sum(preflop_PM) == 1690
+
+print(consolidate_to_action(early_strong_hand_actions, 12, 0.9))
