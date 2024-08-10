@@ -91,6 +91,11 @@ always_fold[0] = 1
 always_call = np.zeros(13)
 always_call[1] = 1
 
+# Fold call 50/50 action space
+fold_call = np.zeros(13)
+fold_call[0] = 0.5
+fold_call[1] = 0.5
+
 # Action space for super strong hand
 early_strong_hand_actions = np.array([0, 0.1, 0.025, 0.025, 0.05, 0.05, 0.15, 0.3, 0.15, 0.05, 0.05, 0.025, 0.025])
 
@@ -121,5 +126,18 @@ for starting_rank in range(169):
     elif starting_rank <= RANKED_STARTING_HANDS.index("99"):
         preflop_PM[hand_ind, :5] = consolidate_to_action(consolidate_to_action(early_strong_hand_actions, 2, 0.5), 1, 0.5)
         preflop_PM[5:10] = always_call
+    elif starting_rank <= RANKED_STARTING_HANDS.index("66"):
+        preflop_PM[hand_ind, :3] = consolidate_to_action(always_call, 2, 0.3)
+        preflop_PM[hand_ind, 3:5] = always_call
+        preflop_PM[hand_ind, 5:10] = consolidate_to_action(always_call, 0, 0.3)
+    elif starting_rank <= RANKED_STARTING_HANDS.index("22"):
+        preflop_PM[hand_ind, :5] = always_call
+        preflop_PM[hand_ind, 5:10] = consolidate_to_action(always_call, 0, 0.3)
+    elif starting_rank <= RANKED_STARTING_HANDS.index("Q8o"):
+        preflop_PM[hand_ind, :3] = always_call
+        preflop_PM[hand_ind, 3:7] = fold_call
+        preflop_PM[hand_ind, 7:10] = consolidate_to_action(fold_call, 0, 0.8)
+    else:
+        preflop_PM[hand_ind, :3] = consolidate_to_action(fold_call, 0, 0.8)
 
 assert np.sum(preflop_PM) == 1690

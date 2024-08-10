@@ -100,6 +100,12 @@ class PokerGame:
         self.round_in_play = True
         while self.round_in_play():
             self.agents[0].take_action()
+        if len(self.agents == 1):
+            self.agents[0].balance += self.pot
+            for sidepot in self.sidepots.keys():
+                if self.agents[0] in sidepot:
+                    self.agents[0].balance += self.sidepots[sidepot]
+            return
         self.last_raise = 0
         self.community_cards += self.deck.deal(3)
         for i in range(3):
@@ -110,6 +116,12 @@ class PokerGame:
             while self.round_in_play():
                 self.agents[0].take_action()
             if i < 2:
+                if len(self.agents == 1):
+                    self.agents[0].balance += self.pot
+                    for sidepot in self.sidepots.keys():
+                        if self.agents[0] in sidepot:
+                            self.agents[0].balance += self.sidepots[sidepot]
+                    return
                 self.last_raise = 0
                 self.community_cards += self.deck.deal(1)
         winners = self.__get_players_with_winning_hand()
