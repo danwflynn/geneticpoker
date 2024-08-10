@@ -12,7 +12,7 @@ class Suit(Enum):
     DIAMONDS = "Diamonds"
 
 
-RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]
 VALUES = {rank: index for index, rank in enumerate(RANKS, start=2)}
 
 

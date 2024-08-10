@@ -53,7 +53,7 @@ STARTING_HANDS = [
 # Function to get the index of a starting hand
 def get_hand_index(card1: Card, card2: Card) -> int:
     # Ensure cards are in correct order (higher rank first)
-    if VALUES[card1.rank] < VALUES[card2.rank] or (VALUES[card1.rank] == VALUES[card2.rank] and card1.suit < card2.suit):
+    if VALUES[card1.rank] < VALUES[card2.rank]:
         card1, card2 = card2, card1
 
     # Determine hand type
@@ -146,20 +146,20 @@ assert np.sum(preflop_PM) == 1690
 Post flop, the probability matrix works the same but instead of starting hands we use hand ranks.
 '''
 
-flop_PM = np.zeros(9, 10, 13)
+flop_PM = np.zeros((9, 10, 13))
 flop_PM[2:9, :] = strong_hand_actions.copy()
 flop_PM[1, :] = always_call.copy()
 flop_PM[0, :5] = fold_call.copy()
 flop_PM[0, 5:10] = always_fold.copy()
 
-turn_PM = np.zeros(9, 10, 13)
+turn_PM = np.zeros((9, 10, 13))
 turn_PM[2:9, :] = strong_hand_actions.copy()
 turn_PM[1, :5] = always_call.copy()
 turn_PM[1, 5:10] = consolidate_to_action(fold_call, 0, 0.8)
 turn_PM[0, :5] = consolidate_to_action(fold_call, 0, 0.8)
 turn_PM[0, 5:10] = always_fold.copy()
 
-river_PM = np.zeros(9, 10, 13)
+river_PM = np.zeros((9, 10, 13))
 river_PM[2:9, :] = strong_hand_actions.copy()
 river_PM[1, :5] = always_call.copy()
 river_PM[1, 5:10] = consolidate_to_action(fold_call, 0, 0.8)

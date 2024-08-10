@@ -6,7 +6,8 @@ from policy import *
 
 
 class Agent:
-    def __init__(self, stats: List[np.ndarray]):
+    def __init__(self, name: str, stats: List[np.ndarray]):
+        self.name = name
         self.stats = stats
         self.balance = 10000
         self.down_for = 0
@@ -114,6 +115,7 @@ class PokerGame:
         for agent in agents:
             if agent.balance < 100:
                 raise Exception("Players must have at least 100")
+            agent.game = self
         self.agents = deque(agents)
         self.deck = Deck()
         self.community_cards = []
@@ -138,9 +140,9 @@ class PokerGame:
         for agent in self.agents:
             agent.cards = self.deck.deal(2)
         self.round_in_play = True
-        while self.round_in_play():
+        while self.round_in_play:
             self.agents[0].take_action()
-        if len(self.agents == 1):
+        if len(self.agents) == 1:
             self.agents[0].balance += self.pot
             for sidepot in self.sidepots.keys():
                 if self.agents[0] in sidepot:
@@ -153,10 +155,10 @@ class PokerGame:
                 self.agents.rotate(-1)
             self.last_up = self.agents[-1]
             self.round_in_play = True
-            while self.round_in_play():
+            while self.round_in_play:
                 self.agents[0].take_action()
             if i < 2:
-                if len(self.agents == 1):
+                if len(self.agents) == 1:
                     self.agents[0].balance += self.pot
                     for sidepot in self.sidepots.keys():
                         if self.agents[0] in sidepot:
