@@ -164,3 +164,16 @@ river_PM[2:9, :] = strong_hand_actions.copy()
 river_PM[1, :5] = always_call.copy()
 river_PM[1, 5:10] = consolidate_to_action(fold_call, 0, 0.8)
 river_PM[0, :] = always_fold.copy()
+
+
+def mutate_aggressive(pm: np.ndarray):
+    pass
+
+def mutate_passive(pm: np.ndarray):
+    pass
+
+def mutate_late_game_play(pm: np.ndarray):
+    pass
+
+def mutate_early_game_play(pm: np.ndarray):
+    pass
