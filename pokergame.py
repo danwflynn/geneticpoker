@@ -13,6 +13,7 @@ class Agent:
         self.down_for = 0
         self.cards = []
         self.game = None
+        self.games_won = 0
 
     def fold(self):
         self.cards = []
@@ -109,14 +110,14 @@ class Agent:
 
 
 class PokerGame:
-    def __init__(self, agents: List[Agent]):
+    def __init__(self, agents: deque[Agent]):
         if len(agents) > 22 or len(agents) < 2:
             raise Exception("Max of 22 players min of 2 players per game")
         for agent in agents:
             if agent.balance < 100:
                 raise Exception("Players must have at least 100")
             agent.game = self
-        self.agents = deque(agents)
+        self.agents = agents
         self.deck = Deck()
         self.community_cards = []
         self.pot = 0
@@ -136,6 +137,7 @@ class PokerGame:
     
     def play_game(self):
         def end_early():
+            self.agents[0].games_won += 1
             self.agents[0].balance += self.pot
             for sidepot in self.sidepots.keys():
                 if self.agents[0] in sidepot:
@@ -176,6 +178,7 @@ class PokerGame:
                 if a in sidepot:
                     winnings[a] += self.sidepots[sidepot] // len([x for x in sidepot if x in winners])
         for winner in winners:
+            winner.games_won += 1
             winner.balance += winnings[winner]
         for a in self.agents:
             a.cards = []

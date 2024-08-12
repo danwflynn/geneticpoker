@@ -1,22 +1,30 @@
 from pokergame import *
 
 
-def get_balance(agent: Agent):
-    return agent.balance
-
-
-def create_mutated_agent(agent: Agent):
-    # Implement the mutations here
-    return agent
+def get_fitness(agent: Agent):
+    return agent.balance * agent.games_won
 
 
 agents_amount = 10
-agents = [Agent(f"Agent {i+1}", [preflop_PM, flop_PM, turn_PM, river_PM]) for i in range(agents_amount)]
+agents = deque([Agent(f"Agent {i+1}", [preflop_PM, flop_PM, turn_PM, river_PM]) for i in range(agents_amount)])
 total_agents_used = agents_amount
+
+
+def create_mutated_agent(agent: Agent):
+    stats = agent.stats.copy()
+    for pm in stats:
+        # Do some mutation stuff
+        pass
+    return Agent(f"Agent {total_agents_used}", stats)
+
 
 for i in range(1000):
     game = PokerGame(agents)
     game.play_game()
-    agents = game.agents
+    agents.rotate(-1)
+    for a in agents:
+        if a.balance == 0 or (a.balance < 50 and agents.index(a) == 0) or (a.balance < 100 and agents.index(a) == 1):
+            agents.remove(a)
     while len(agents) < 10:
-        agents.append(create_mutated_agent(max(agents, key=get_balance)))
+        total_agents_used += 1
+        agents.append(create_mutated_agent(max(agents, key=get_fitness)))
