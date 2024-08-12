@@ -135,6 +135,14 @@ class PokerGame:
         return [a for a in agent_ranks.keys() if agent_ranks[a] == max_rank]
     
     def play_game(self):
+        def end_early():
+            self.agents[0].balance += self.pot
+            for sidepot in self.sidepots.keys():
+                if self.agents[0] in sidepot:
+                    self.agents[0].balance += self.sidepots[sidepot]
+            for a in self.agents:
+                a.cards = []
+                a.down_for = 0
         self.agents[0].bet(50)
         self.agents[0].bet(100)
         for agent in self.agents:
@@ -143,10 +151,7 @@ class PokerGame:
         while self.round_in_play:
             self.agents[0].take_action()
         if len(self.agents) == 1:
-            self.agents[0].balance += self.pot
-            for sidepot in self.sidepots.keys():
-                if self.agents[0] in sidepot:
-                    self.agents[0].balance += self.sidepots[sidepot]
+            end_early()
             return
         self.last_raise = 0
         self.community_cards += self.deck.deal(3)
@@ -159,10 +164,7 @@ class PokerGame:
                 self.agents[0].take_action()
             if i < 2:
                 if len(self.agents) == 1:
-                    self.agents[0].balance += self.pot
-                    for sidepot in self.sidepots.keys():
-                        if self.agents[0] in sidepot:
-                            self.agents[0].balance += self.sidepots[sidepot]
+                    end_early()
                     return
                 self.last_raise = 0
                 self.community_cards += self.deck.deal(1)
