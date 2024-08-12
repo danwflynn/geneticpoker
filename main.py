@@ -19,12 +19,16 @@ def create_mutated_agent(agent: Agent):
 
 
 for i in range(1000):
+    print(i)
     game = PokerGame(agents)
     game.play_game()
     agents.rotate(-1)
-    for a in agents:
-        if a.balance == 0 or (a.balance < 50 and agents.index(a) == 0) or (a.balance < 100 and agents.index(a) == 1):
+    for a in agents.copy():
+        if a.balance < 100:
             agents.remove(a)
     while len(agents) < 10:
         total_agents_used += 1
         agents.append(create_mutated_agent(max(agents, key=get_fitness)))
+
+for a in agents:
+    print(f"{a.name}: {a.balance}")

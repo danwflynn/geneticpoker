@@ -1,7 +1,6 @@
 from typing import List
 from deck import *
 from collections import deque
-import numpy as np
 from policy import *
 
 
@@ -16,6 +15,7 @@ class Agent:
         self.games_won = 0
 
     def fold(self):
+        print(f"{self.name}: fold")
         self.cards = []
         self.down_for = 0
         if self.game.last_up is self:
@@ -27,6 +27,7 @@ class Agent:
         self.game.agents.remove(self)
 
     def bet(self, amount: int):
+        print(f"{self.name}: bet {amount}")
         if amount > self.balance:
             raise Exception("Not enough balance")
         if amount != self.game.call_amount - self.down_for and amount < 2 * self.game.last_raise:
@@ -47,6 +48,7 @@ class Agent:
         self.game.agents.rotate(-1)
     
     def check_call(self):
+        print(f"{self.name}: check/call")
         if self.game.call_amount - self.down_for > self.balance:
             self.game.pot += self.balance
             self.down_for += self.balance
@@ -55,8 +57,8 @@ class Agent:
             for a in self.game.agents:
                 if a.balance > 0:
                     sp.append(a)
-            self.game.current_sidepot = sp
-            self.game.sidepots[sp] = 0
+            self.game.current_sidepot = tuple(sp)
+            self.game.sidepots[self.game.current_sidepot] = 0
             if self.game.last_up is self:
                 self.game.round_in_play = False
         else:
