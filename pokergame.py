@@ -1,4 +1,3 @@
-from typing import List
 from deck import *
 from collections import deque
 from policy import *

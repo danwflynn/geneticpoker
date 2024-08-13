@@ -107,7 +107,7 @@ def consolidate_to_action(action_space: np.ndarray, action: int, alpha=1):
     mask[action] = False
     new_action_space[mask] -= (sum_all_else - 1 + alpha) * (action_space[mask] / sum_all_else)
     if np.sum(new_action_space) != 1:
-        new_action_space[action] += 1 - np.sum(new_action_space)
+        new_action_space[action] = np.add(new_action_space[action], np.subtract(1, np.sum(new_action_space)))
     assert np.sum(new_action_space) == 1
     return new_action_space
 
@@ -164,3 +164,26 @@ river_PM[2:9, :] = strong_hand_actions.copy()
 river_PM[1, :5] = always_call.copy()
 river_PM[1, 5:10] = consolidate_to_action(fold_call, 0, 0.8)
 river_PM[0, :] = always_fold.copy()
+
+
+def mutate_aggressive(pm: np.ndarray, degree):
+    for hand_ind in range(pm.shape[0]):
+        for wealth_ind in range(10):
+            if pm[hand_ind, wealth_ind, 0] > 0:
+                old = pm[hand_ind, wealth_ind, 0]
+                pm[hand_ind, wealth_ind, 0] = max(0, pm[hand_ind, wealth_ind, 0] - degree)
+                difference = old - pm[hand_ind, wealth_ind, 0]
+                for i in range(2, 13):
+                    pm[hand_ind, wealth_ind, i] += difference / 11
+
+
+def mutate_passive(pm: np.ndarray, degree):
+    for hand_ind in range(pm.shape[0]):
+        for wealth_ind in range(10):
+            for i in range(12, 0, -1):
+                if pm[hand_ind, wealth_ind, i] > 0:
+                    old = pm[hand_ind, wealth_ind, i]
+                    pm[hand_ind, wealth_ind, i] = max(0, pm[hand_ind, wealth_ind, i] - degree)
+                    difference = old - pm[hand_ind, wealth_ind, i]
+                    pm[hand_ind, wealth_ind, 0] += difference
+                    break

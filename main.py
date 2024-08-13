@@ -1,4 +1,5 @@
 from pokergame import *
+import copy
 
 
 def get_fitness(agent: Agent):
@@ -11,10 +12,14 @@ total_agents_used = agents_amount
 
 
 def create_mutated_agent(agent: Agent):
-    stats = agent.stats.copy()
-    for pm in stats:
-        # Do some mutation stuff
-        pass
+    stats = copy.deepcopy(agent.stats)
+    choice = random.choice([1, 2])
+    if choice == 1:
+        for pm in stats:
+            mutate_aggressive(pm, 0.05)
+    else:
+        for pm in stats:
+            mutate_passive(pm, 0.05)
     return Agent(f"Agent {total_agents_used}", stats)
 
 
