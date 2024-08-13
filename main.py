@@ -37,3 +37,9 @@ for i in range(1000):
 
 for a in agents:
     print(f"{a.name}: {a.balance}")
+
+winner = max(agents, key=get_fitness)
+
+for i in range(3):
+    for j in range(9):
+        print(winner.stats[i+1][j][0])
