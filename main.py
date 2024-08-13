@@ -1,7 +1,13 @@
+<<<<<<< Updated upstream
 import random
 from pokergame import PokerGame, Agent
 from deck import Deck, Card, Suit, hand_description, best_hand, hand_rank
 
+=======
+from pokergame import *
+import numpy as np
+import random
+>>>>>>> Stashed changes
 
 def play_poker_game():
     # Ask the user if they want to play as a human or have AI bots play
@@ -24,7 +30,44 @@ def play_poker_game():
         for i in range(num_players):
             agents.append(Agent(stats={"name": f"AI Player {i + 1}"}))
 
+<<<<<<< Updated upstream
     # Initialize and start the poker game
+=======
+
+def create_mutated_agent(agent: Agent):
+    stats = [np.copy(pm) for pm in agent.stats]  # Deep copy of the policy matrices
+
+    for i in range(len(stats)):
+        flat_stats = stats[i].flatten()
+
+        # Ensure the initial sum is exactly 1
+        flat_stats /= np.sum(flat_stats)
+        
+        # Select one index to modify
+        idx1 = random.randint(0, len(flat_stats) - 1)
+
+        # Calculate a small adjustment
+        adjustment = random.uniform(-0.01, 0.01)
+        
+        # Apply the adjustment
+        flat_stats[idx1] += adjustment
+
+        # Make sure the probabilities remain valid
+        flat_stats = np.clip(flat_stats, 0, 1)
+
+        # Re-normalize to sum to 1
+        total = np.sum(flat_stats)
+        if total != 1:
+            flat_stats /= total  # Ensure the sum is exactly 1
+
+        stats[i] = flat_stats.reshape(stats[i].shape)
+
+    return Agent(f"Agent {total_agents_used}", stats)
+
+
+for i in range(1000):
+    print(i)
+>>>>>>> Stashed changes
     game = PokerGame(agents)
     game.start_game()
 
