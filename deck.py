@@ -12,7 +12,7 @@ class Suit(Enum):
     DIAMONDS = "Diamonds"
 
 
-RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]
 VALUES = {rank: index for index, rank in enumerate(RANKS, start=2)}
 
 
@@ -25,7 +25,7 @@ class Card:
         self.value = VALUES[rank]
 
     def __repr__(self):
-        return f"{self.rank} of {self.suit.value}"  # Use the suit's value for a cleaner output
+        return f"{self.rank} of {self.suit}"
 
 
 class Deck:
@@ -75,7 +75,7 @@ def hand_rank(hand: List[Card]):
         return 0, ranks  # High card
 
 
-def best_hand(cards):
+def best_hand(cards: List[Card]):
     """Determine the best 5-card hand from a list of 7 cards."""
     return max((comb for comb in combinations(cards, 5)), key=lambda hand: hand_rank(hand))
 
