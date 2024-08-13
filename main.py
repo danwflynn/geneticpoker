@@ -18,14 +18,13 @@ policy_snapshots = []
 
 # Function to record the current policy
 def record_policy_snapshot(agent, game_number):
-    hand_index = STARTING_HANDS.index("AA")  # Example: tracking policy for AA
+    hand_index = STARTING_HANDS.index("AA")  
     snapshot = {
         "game_number": game_number,
-        "policy": copy.deepcopy(agent.stats[0][hand_index, :, :])  # Tracking preflop policy for AA
+        "policy": copy.deepcopy(agent.stats[0][hand_index, :, :])  
     }
     policy_snapshots.append(snapshot)
 
-# Open a file to write the data
 with open('poker_simulation_results.csv', mode='w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(["Game Number", "Agent Name", "Balance", "Games Won"])
@@ -56,17 +55,13 @@ with open('poker_simulation_results.csv', mode='w', newline='') as file:
         for a in agents:
             writer.writerow([i+1, a.name, a.balance, a.games_won])
 
-        # Record policy snapshots every 100 games
         if (i + 1) % 100 == 0:
             record_policy_snapshot(agents[0], i + 1)
 
-# Determine the number of actions (columns) in your policy matrix
 num_actions = policy_snapshots[0]["policy"].shape[1] if policy_snapshots else 0
 
-# Ensure action_names list has the correct length
 action_names = ["Fold", "Check/Call"] + [f"Raise {i}%" for i in range(num_actions - 2)]
 
-# Plot policy changes over time
 plt.figure(figsize=(12, 6))
 for idx in range(num_actions):
     probabilities = [snapshot["policy"][0, idx] for snapshot in policy_snapshots]
