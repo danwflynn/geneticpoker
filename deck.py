@@ -25,7 +25,7 @@ class Card:
         self.value = VALUES[rank]
 
     def __repr__(self):
-        return f"{self.rank} of {self.suit.value}"  # Use the suit's value for a cleaner output
+        return f"{self.rank} of {self.suit}"
 
 
 class Deck:
