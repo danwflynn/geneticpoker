@@ -3,6 +3,7 @@ import copy
 import csv
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def get_fitness(agent: Agent):
@@ -13,11 +14,20 @@ agents_amount = 10
 agents = deque([Agent(f"Agent {i+1}", [preflop_PM, flop_PM, turn_PM, river_PM]) for i in range(agents_amount)])
 total_agents_used = agents_amount
 
+policy_snapshots = []
+
+# Function to record the current policy
+def record_policy_snapshot(agent, game_number):
+    hand_index = STARTING_HANDS.index("AA")  # Example: tracking policy for AA
+    snapshot = {
+        "game_number": game_number,
+        "policy": copy.deepcopy(agent.stats[0][hand_index, :, :])  # Tracking preflop policy for AA
+    }
+    policy_snapshots.append(snapshot)
 
 # Open a file to write the data
 with open('poker_simulation_results.csv', mode='w', newline='') as file:
     writer = csv.writer(file)
-    # Write the header
     writer.writerow(["Game Number", "Agent Name", "Balance", "Games Won"])
 
     def create_mutated_agent(agent: Agent):
@@ -43,39 +53,27 @@ with open('poker_simulation_results.csv', mode='w', newline='') as file:
             total_agents_used += 1
             agents.append(create_mutated_agent(max(agents, key=get_fitness)))
         
-        # Record the data after each game
         for a in agents:
             writer.writerow([i+1, a.name, a.balance, a.games_won])
 
-    # Print the final results
-    for a in agents:
-        print(f"{a.name}: {a.balance}")
+        # Record policy snapshots every 100 games
+        if (i + 1) % 100 == 0:
+            record_policy_snapshot(agents[0], i + 1)
 
-    winner = max(agents, key=get_fitness)
+# Determine the number of actions (columns) in your policy matrix
+num_actions = policy_snapshots[0]["policy"].shape[1] if policy_snapshots else 0
 
-    for i in range(3):
-        for j in range(9):
-            print(winner.stats[i+1][j][0])
+# Ensure action_names list has the correct length
+action_names = ["Fold", "Check/Call"] + [f"Raise {i}%" for i in range(num_actions - 2)]
 
-
-data = pd.read_csv('poker_simulation_results.csv')
-
-plt.figure(figsize=(10, 6))
-for agent_name in data['Agent Name'].unique():
-    agent_data = data[data['Agent Name'] == agent_name]
-    plt.plot(agent_data['Game Number'], agent_data['Balance'], label=agent_name)
+# Plot policy changes over time
+plt.figure(figsize=(12, 6))
+for idx in range(num_actions):
+    probabilities = [snapshot["policy"][0, idx] for snapshot in policy_snapshots]
+    plt.plot([snapshot["game_number"] for snapshot in policy_snapshots], probabilities, label=action_names[idx])
 
 plt.xlabel('Game Number')
-plt.ylabel('Balance')
-plt.title('Agent Balance Over Time')
-plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
-plt.show()
-
-games_won_summary = data.groupby('Agent Name')['Games Won'].sum()
-
-plt.figure(figsize=(10, 6))
-games_won_summary.plot(kind='bar')
-plt.xlabel('Agent Name')
-plt.ylabel('Total Games Won')
-plt.title('Total Games Won by Each Agent')
+plt.ylabel('Probability')
+plt.title('Policy Changes Over Time for Hand "AA"')
+plt.legend(loc='best')
 plt.show()
