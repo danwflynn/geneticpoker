@@ -79,7 +79,7 @@ with open('poker_simulation_results.csv', mode='w', newline='') as file:
                 mutate_passive(pm, 0.05)
         return Agent(f"Agent {total_agents_used}", stats)
 
-    for i in range(1000):
+    for i in range(100000):
         print(i)
         game = PokerGame(agents)
         game.play_game()
