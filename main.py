@@ -10,7 +10,6 @@ import seaborn as sns
 def get_fitness(agent: Agent):
     return agent.balance * agent.games_won
 
-
 agents_amount = 10
 agents = deque([Agent(f"Agent {i+1}", [preflop_PM, flop_PM, turn_PM, river_PM]) for i in range(agents_amount)])
 total_agents_used = agents_amount
@@ -24,7 +23,6 @@ eliminated_agents = []
 training_accuracy = []
 agent_strategies = {} 
 
-# Function to record the current policy for both "AA" and "72o"
 def record_policy_snapshot(agent, game_number):
     hand_index_AA = STARTING_HANDS.index("AA")
     hand_index_72o = STARTING_HANDS.index("72o")
@@ -157,26 +155,26 @@ plt.legend(loc='best')
 plt.grid(True)
 plt.savefig('training_accuracy.png')
 
-top_agents_games_won = pd.DataFrame(game_results).groupby('Agent Name').sum().nlargest(5, 'Games Won')
-top_agents_balance = pd.DataFrame(final_balances).nlargest(5, 'Final Balance')
+top_agents_games_won = pd.DataFrame(game_results).groupby('Agent Name').sum().nlargest(10, 'Games Won')
+top_agents_balance = pd.DataFrame(final_balances).nlargest(10, 'Final Balance')
 
 plt.figure(figsize=(12, 6))
 top_agents_games_won['Games Won'].plot(kind='bar', color='orange')
 plt.xlabel('Agent Name')
 plt.ylabel('Games Won')
-plt.title('Top 5 Agents Based on Games Won')
+plt.title('Top 10 Agents Based on Games Won')
 plt.xticks(rotation=45)
 plt.grid(True)
-plt.savefig('top_5_games_won.png')
+plt.savefig('top_10_games_won.png')
 
 plt.figure(figsize=(12, 6))
 top_agents_balance.set_index('Agent Name')['Final Balance'].plot(kind='bar', color='green')
 plt.xlabel('Agent Name')
 plt.ylabel('Final Balance')
-plt.title('Top 5 Agents Based on Final Balance')
+plt.title('Top 10 Agents Based on Final Balance')
 plt.xticks(rotation=45)
 plt.grid(True)
-plt.savefig('top_5_final_balance.png')
+plt.savefig('top_10_final_balance.png')
 
 def save_agent_strategy_to_csv(agent_name, strategies_dict, filename):
     agent_strategy = strategies_dict.get(agent_name, None)
@@ -187,7 +185,7 @@ def save_agent_strategy_to_csv(agent_name, strategies_dict, filename):
                 writer.writerow([f"Strategy for {agent_name} during {phase_name}"])
                 for row in phase:
                     writer.writerow(row)
-                writer.writerow([])  # Blank line for separation
+                writer.writerow([])
 
 for agent_name in top_agents_balance.index:
     save_agent_strategy_to_csv(agent_name, agent_strategies, 'top_agents_strategies_balance.csv')
